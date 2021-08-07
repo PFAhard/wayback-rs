@@ -1,0 +1,15 @@
+[package]
+name = "wayback"
+version = "0.1.0"
+edition = "2018"
+
+[alias]
+b = "build"
+r = "run"
+c = "build --release"
+
+[dependencies]
+clap = "2.33.3"
+reqwest = { version = "0.11.4", features = ["blocking","json"] }
+serde = { version = "1.0.127", features = ["derive"] }
+serde_json = "1.0.66"
