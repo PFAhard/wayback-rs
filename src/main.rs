@@ -63,7 +63,7 @@ fn get_common_crawl_url(domain: &String, subs_flag: bool) -> Option<Vec<String>>
                 Ok(response) => {
                     let mut inner_urls: Vec<String> = vec![];
                     let _ph = response
-                        .split("\n")
+                        .lines()
                         .filter(|x| x != &"")
                         .map(|x| {
                             match serde_json::from_str::<Value>(x) {
@@ -83,7 +83,7 @@ fn get_common_crawl_url(domain: &String, subs_flag: bool) -> Option<Vec<String>>
                                 }
                                 Err(err) => { eprintln!("{:?}",err); }
                             }
-                    });
+                    }).collect::<Vec<_>>();
                     if !inner_urls.is_empty() {urls = Some(inner_urls)}
                 },
                 Err(err) => { eprintln!("{:?}",err); }
@@ -117,7 +117,7 @@ fn get_virus_total_url(domain: &String, api_key: &String) -> Option<Vec<String>>
                                     }
                                 }
                                 None => { eprintln!("No one url in VirusTotal or Api quote"); }
-                            } 
+                            }
                         }
                         Err(err) => {eprintln!("{:?}",err); }
                     }
@@ -164,7 +164,7 @@ fn args_parser() -> (Vec<String>, bool, Option<String>){
             .short("vt")
             .help("virus total api key")
             .takes_value(true)
-        ).get_matches();   
+        ).get_matches();
     if let Some(domain) = matches.value_of("domain") {
         domains.push(domain.to_string());
     }
