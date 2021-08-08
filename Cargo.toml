@@ -1,12 +1,12 @@
 [package]
 name = "wayback"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
-
-[alias]
-b = "build"
-r = "run"
-c = "build --release"
+repository = "https://github.com/PFAhard/wayback-rs"
+description = "Rust version of tomnomnom/waybackurls"
+categories = ["command-line-utilities"]
+keywords = ["wayback", "archive", "backup", "reconre", "bug-bounty"]
+license = "GPL-3.0"
 
 [dependencies]
 clap = "2.33.3"

@@ -4,7 +4,7 @@ use reqwest::blocking;
 use clap::{Arg, App};
 
 fn main() {
-    let (domains, subs_flag) = args_parser();
+    let (domains, subs_flag, api_key) = args_parser();
     let mut result: Vec<String> = vec![];
 
     let _ph = domains.iter().map(|domain| {
@@ -14,8 +14,10 @@ fn main() {
         if let Some(mut cc_result) = get_common_crawl_url(domain, subs_flag) {
             result.append(&mut cc_result);
         }
-        if let Some(mut vt_result) = get_virus_total_url(domain) {
-            result.append(&mut vt_result);
+        if let Some(api_key) = &api_key {
+            if let Some(mut vt_result) = get_virus_total_url(domain, api_key) {
+                result.append(&mut vt_result);
+            }
         }
     }).collect::<Vec<()>>();
     let _ph = result.into_iter().map(|x| {println!("{}",x)}).collect::<Vec<()>>();
@@ -93,8 +95,7 @@ fn get_common_crawl_url(domain: &String, subs_flag: bool) -> Option<Vec<String>>
     urls
 }
 
-fn get_virus_total_url(domain: &String) -> Option<Vec<String>> {
-    let api_key = "7bdb8a8992344a5704f7b58d7d46895f28d494afa8e90aa544a77d551d6de8df";
+fn get_virus_total_url(domain: &String, api_key: &String) -> Option<Vec<String>> {
     let mut urls = None;
 
     match blocking::get(format!("https://www.virustotal.com/vtapi/v2/domain/report?apikey={}&domain={}", api_key, domain)) {
@@ -138,9 +139,10 @@ struct VT {
     scan_date: String,
 }
 
-fn args_parser() -> (Vec<String>, bool){
+fn args_parser() -> (Vec<String>, bool, Option<String>){
     let mut domains: Vec<String> = vec![];
     let mut subs_flag = false;
+    let mut api_key = None;
     let matches = App::new("wayback-rs")
         .version("0.1.0")
         .author("pfapostol")
@@ -156,6 +158,11 @@ fn args_parser() -> (Vec<String>, bool){
             .long("list")
             .short("l")
             .help("file with domains for scan")
+            .takes_value(true)
+        ).arg(Arg::with_name("vt_key")
+            .long("vt-api-key")
+            .short("vt")
+            .help("virus total api key")
             .takes_value(true)
         ).get_matches();   
     if let Some(domain) = matches.value_of("domain") {
@@ -173,5 +180,8 @@ fn args_parser() -> (Vec<String>, bool){
             })
             .collect::<Vec<()>>();
     }
-    (domains, subs_flag)
+    if let Some(vt_key) = matches.value_of("vt_key") {
+        api_key = Some(vt_key.to_string())
+    }
+    (domains, subs_flag, api_key)
 }
