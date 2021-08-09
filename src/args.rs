@@ -27,6 +27,7 @@ pub fn args_parser() -> (Vec<String>, bool, Option<String>){
             .takes_value(true)
         ).get_matches();   
     if let Some(domain) = matches.value_of("domain") {
+        if domain.is_empty() {panic!("domain is empty!")};
         domains.push(domain.to_string());
     }
     if matches.is_present("subs_flag") {
@@ -36,6 +37,7 @@ pub fn args_parser() -> (Vec<String>, bool, Option<String>){
         let data = std::fs::read_to_string(list).expect("Unable to read file");
         let _ph = data
             .split("\n")
+            .filter(|x| !x.is_empty())
             .map(|x| {
                 domains.push(x.trim().to_string());
             })

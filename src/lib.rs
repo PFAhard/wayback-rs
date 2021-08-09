@@ -163,7 +163,10 @@ pub fn get_otx_alienvault_url(domain: &String) -> Option<Vec<String>> {
                             };
                         }).collect::<()>();
                     }
-                    Err(err) => { eprintln!("{:?}",err);}
+                    Err(err) => { 
+                        has_next = false;
+                        eprintln!("{:?}",err);
+                    }
                 }
             }
             Err(err) => { eprintln!("{:?}", err);}
