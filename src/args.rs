@@ -1,6 +1,6 @@
 use clap::{Arg, App};
 
-pub fn args_parser() -> (Vec<String>, bool, Option<String>){
+pub(crate) fn args_parser() -> (Vec<String>, bool, Option<String>){
     let mut domains: Vec<String> = vec![];
     let mut subs_flag = false;
     let mut api_key = None;
