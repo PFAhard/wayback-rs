@@ -1,4 +1,4 @@
-pub(crate) mod args;
+pub mod args;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use reqwest::blocking::{Client};
