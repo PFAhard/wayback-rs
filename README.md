@@ -1,4 +1,9 @@
 # wayback-rs
+
+[![crates.io](https://img.shields.io/crates/v/wayback)](https://crates.io/crates/wayback)
+[![Documentation](https://docs.rs/wayback/badge.svg)](https://docs.rs/wayback)
+![lang](https://img.shields.io/github/languages/top/PFAhard/wayback-rs)
+
 Rust version of tomnomnom/waybackurls
 
 Command line interface for fetching url from Wayback Machine, CommonCrawl, VirusTotal.
