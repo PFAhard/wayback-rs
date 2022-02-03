@@ -1,16 +1,44 @@
 [package]
 name = "wayback"
-version = "0.3.1"
-edition = "2018"
+version = "1.0.0"
+edition = "2021"
+resolver = "2"
 repository = "https://github.com/PFAhard/wayback-rs"
 description = "Rust version of tomnomnom/waybackurls"
 categories = ["command-line-utilities"]
-keywords = ["wayback", "archive", "backup", "reconre", "bug-bounty"]
+keywords = ["wayback", "archive", "backup", "recon", "bug-bounty"]
 license = "GPL-3.0"
 documentation = "https://docs.rs/wayback"
 
+[[bin]]
+name = "wayback-rs"
+path = "src/cli/main.rs"
+required-features = ["cli"]
+
 [dependencies]
-clap = "2.33.3"
-reqwest = { version = "0.11.4", features = ["blocking","json"] }
-serde = { version = "1.0.127", features = ["derive"] }
-serde_json = "1.0.66"
+tokio = { version = "1.16.0", features = ["rt", "process", "macros"], optional = true  }
+tokio-stream = { version = "0.1.8", optional = true }
+clap = { version = "3.0.13", features = ["derive"] }
+serde = { version = "1.0.136", features = ["derive"] }
+serde_json = "1.0.78"
+reqwest = {version = "0.11.9", features = ["json", "blocking", "rustls-tls", "gzip", "brotli"] }
+anyhow = "1.0.53"
+thiserror = "1.0.30"
+futures = {version = "0.3.19", optional = true }
+rayon = "1.5.1"
+tracing = "0.1.29"
+tracing-subscriber = "0.3.7"
+async-trait = {version = "0.1.52", optional = true }
+governor = "0.4.1"
+nonzero_ext = "0.3.0"
+
+[features]
+default = ["cli", "threads", "async"]
+all = ["cli", "async", "threads"]
+cli = ["tokio"]
+threads = ["tokio/rt-multi-thread"]
+async = ["tokio", "tokio-stream", "futures", "async-trait"]
+
+[dev-dependencies]
+trycmd = "0.12.0"
+criterion = "0.3.5"
