@@ -1,4 +1,4 @@
-pub trait IntoFlag {
+pub(crate) trait IntoFlag {
     fn into_flag(self) -> bool;
 
     fn select<I>(self, one: I, sec: I) -> I;
@@ -51,7 +51,8 @@ impl IntoFlag for SubsFlag {
 
     fn restrict<I>(self, input: I)
     where
-        I: FnOnce() {
+        I: FnOnce(),
+    {
         if self.into_flag() {
             input();
         }
@@ -59,7 +60,7 @@ impl IntoFlag for SubsFlag {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum NetThreads {
+pub(crate) enum NetThreads {
     Enable,
     Disable,
 }
@@ -92,7 +93,8 @@ impl IntoFlag for NetThreads {
 
     fn restrict<I>(self, input: I)
     where
-        I: FnOnce() {
+        I: FnOnce(),
+    {
         if self.into_flag() {
             input();
         }
@@ -100,7 +102,7 @@ impl IntoFlag for NetThreads {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Expensive {
+pub(crate) enum Expensive {
     Enable,
     Disable,
 }
@@ -133,7 +135,8 @@ impl IntoFlag for Expensive {
 
     fn restrict<I>(self, input: I)
     where
-        I: FnOnce() {
+        I: FnOnce(),
+    {
         if self.into_flag() {
             input();
         }

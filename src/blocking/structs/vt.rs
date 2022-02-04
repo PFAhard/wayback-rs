@@ -1,4 +1,4 @@
-use std::{fmt, marker::PhantomData, collections::HashSet};
+use std::{collections::HashSet, fmt, marker::PhantomData};
 
 use serde::{
     de::{IgnoredAny, SeqAccess, Visitor},
@@ -6,7 +6,7 @@ use serde::{
 };
 
 #[derive(Deserialize, Debug)]
-pub struct VT {
+pub(crate) struct VT {
     #[serde(deserialize_with = "deserialize_undetected_urls")]
     undetected_urls: HashSet<String>,
     #[serde(deserialize_with = "deserialize_detected_urls")]
@@ -14,7 +14,7 @@ pub struct VT {
 }
 
 impl VT {
-    pub fn consume(self) -> HashSet<String> {
+    pub(crate) fn consume(self) -> HashSet<String> {
         let mut det = self.detected_urls;
         let und = self.undetected_urls;
         det.extend(und);
@@ -28,7 +28,7 @@ struct DetectedUrlsInner {
 }
 
 impl DetectedUrlsInner {
-    fn consume(self) -> String {
+    pub(crate) fn consume(self) -> String {
         self.url
     }
 }
@@ -41,12 +41,14 @@ struct UndetectedUrlsInner(
 );
 
 impl UndetectedUrlsInner {
-    fn consume(self) -> String {
+    pub(crate) fn consume(self) -> String {
         self.0
     }
 }
 
-fn deserialize_detected_urls<'de, D>(deserializer: D) -> Result<HashSet<String>, D::Error>
+pub(crate) fn deserialize_detected_urls<'de, D>(
+    deserializer: D,
+) -> Result<HashSet<String>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -75,7 +77,9 @@ where
     deserializer.deserialize_seq(visitor)
 }
 
-fn deserialize_undetected_urls<'de, D>(deserializer: D) -> Result<HashSet<String>, D::Error>
+pub(crate) fn deserialize_undetected_urls<'de, D>(
+    deserializer: D,
+) -> Result<HashSet<String>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -104,7 +108,7 @@ where
     deserializer.deserialize_seq(visitor)
 }
 
-fn deserialize_undetected_urls_inner<'de, D>(deserializer: D) -> Result<String, D::Error>
+pub(crate) fn deserialize_undetected_urls_inner<'de, D>(deserializer: D) -> Result<String, D::Error>
 where
     D: Deserializer<'de>,
 {

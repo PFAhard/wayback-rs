@@ -2,17 +2,16 @@ use crate::structs::IntoFlag;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-pub fn app_trace(v: Verbose) {
+pub(crate) fn app_trace(v: Verbose) {
     if let Some(level) = v.into_tracing_level() {
-        let subscriber = FmtSubscriber::builder()
-            .with_max_level(level)
-            .finish();
-        tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+        let subscriber = FmtSubscriber::builder().with_max_level(level).finish();
+        tracing::subscriber::set_global_default(subscriber)
+            .expect("setting default subscriber failed");
     }
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Verbose {
+pub(crate) enum Verbose {
     None,
     Timing,
     Warn,
@@ -49,7 +48,8 @@ impl IntoFlag for Verbose {
 
     fn restrict<I>(self, input: I)
     where
-        I: FnOnce() {
+        I: FnOnce(),
+    {
         if self.into_flag() {
             input();
         }
@@ -57,14 +57,14 @@ impl IntoFlag for Verbose {
 }
 
 impl Verbose {
-    fn into_tracing_level(self) -> Option<Level> {
+    pub(crate) fn into_tracing_level(self) -> Option<Level> {
         match self {
             Verbose::None => Option::None,
             Verbose::Timing => Some(Level::ERROR),
             Verbose::Warn => Some(Level::WARN),
             Verbose::Info => Some(Level::INFO),
             Verbose::Debug => Some(Level::DEBUG),
-            Verbose::Trace => Some(Level::TRACE), 
+            Verbose::Trace => Some(Level::TRACE),
         }
     }
 }

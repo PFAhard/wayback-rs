@@ -76,34 +76,34 @@ vvvvv - trace"#,
 impl Config {
     /// Get domain.
     /// Panic if None
-    pub fn domain_unchecked(&self) -> &str {
-        self.domain.as_ref().unwrap()
+    pub(crate) fn domain_unchecked(&self) -> String {
+        self.domain.clone().unwrap()
     }
 
-    pub fn domain_is_some(&self) -> bool {
+    pub(crate) fn domain_is_some(&self) -> bool {
         self.domain.is_some()
     }
 
     /// Get a unsafe reference to the args's list.
-    pub fn list(&self) -> Vec<String> {
+    pub(crate) fn list(&self) -> Vec<String> {
         Vec::from_file(self.list.as_ref().unwrap())
     }
 
-    // pub fn copy_list_path(&self) -> Option<String> {
+    // pub(crate) fn copy_list_path(&self) -> Option<String> {
     //     self.list.clone()
     // }
 
     /// Get a reference to the args's subs flag.
-    pub fn subs_flag(&self) -> SubsFlag {
+    pub(crate) fn subs_flag(&self) -> SubsFlag {
         self.subs_flag
     }
 
     /// Get a reference to the args's vt key.
-    pub fn vt_key(&self) -> Option<String> {
+    pub(crate) fn vt_key(&self) -> Option<String> {
         self.vt_key.clone()
     }
 
-    // pub fn vt_key_unchecked(&self) -> String {
+    // pub(crate) fn vt_key_unchecked(&self) -> String {
     //     match &self.vt_key {
     //         Some(k) => k.clone(),
     //         None => unreachable!("unchecked domain unwrap failed"),
@@ -112,51 +112,56 @@ impl Config {
 
     /// Get a reference to the args's threads.
     #[cfg(feature = "threads")]
-    pub fn threads(&self) -> u8 {
+    pub(crate) fn threads(&self) -> u8 {
         self.threads
     }
 
     /// Get a reference to the args's expensive.
-    pub fn expensive(&self) -> Expensive {
+    pub(crate) fn expensive(&self) -> Expensive {
         self.expensive
     }
 
     // /// Get a reference to the config's expensive threads.
     // #[cfg(feature = "threads")]
-    // pub fn expensive_threads(&self) -> u8 {
+    // pub(crate) fn expensive_threads(&self) -> u8 {
     //     self.expensive_threads
     // }
 
     /// Get a reference to the config's output.
-    pub fn output(&self) -> Option<&String> {
+    pub(crate) fn output(&self) -> Option<&String> {
         self.output.as_ref()
     }
 
-    pub fn output_is_none(&self) -> bool {
+    pub(crate) fn output_is_none(&self) -> bool {
         self.output.is_none()
     }
 
     // /// Get a reference to the config's disable subthreads.
-    // pub fn disable_subthreads(&self) -> NetThreads {
+    // pub(crate) fn disable_subthreads(&self) -> NetThreads {
     //     self.disable_subthreads
     // }
 
     /// Get a reference to the config's verbose.
-    pub fn verbose(&self) -> Verbose {
+    pub(crate) fn verbose(&self) -> Verbose {
         self.verbose
     }
 
     #[cfg(feature = "threads")]
     /// Get a reference to the config's expensive threads.
-    pub fn expensive_threads(&self) -> u8 {
+    pub(crate) fn expensive_threads(&self) -> u8 {
         self.expensive_threads
     }
 
     #[cfg(feature = "threads")]
     #[warn(dead_code)]
     /// Get a reference to the config's disable subthreads.
-    pub fn disable_subthreads(&self) -> NetThreads {
+    pub(crate) fn disable_subthreads(&self) -> NetThreads {
         self.disable_subthreads
+    }
+
+    /// Set the config's domain.
+    pub fn set_domain(&mut self, domain: String) {
+        self.domain = Some(domain);
     }
 }
 

@@ -1,15 +1,16 @@
-pub mod app;
-pub mod flags;
-pub mod indcoll;
-pub mod otx;
-pub mod vt;
-pub mod flow;
-pub mod verbose;
+//! Structs
+pub(crate) mod app;
+pub(crate) mod flags;
+pub(crate) mod flow;
+pub(crate) mod indcoll;
+pub(crate) mod otx;
+pub(crate) mod verbose;
+pub(crate) mod vt;
 
 pub use app::WaybackRs;
-pub use flags::*;
-pub use indcoll::IndColl;
-pub use otx::Otx;
-pub use vt::VT;
-pub use flow::{Flow, IntoFlow};
-pub use verbose::{Verbose, app_trace};
+pub(crate) use flags::*;
+pub(crate) use flow::{Flow, IntoFlow};
+pub(crate) use indcoll::IndColl;
+pub(crate) use otx::Otx;
+pub(crate) use verbose::{app_trace, Verbose};
+pub(crate) use vt::VT;

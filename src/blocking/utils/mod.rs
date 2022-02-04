@@ -1,6 +1,7 @@
-pub mod from_file;
-pub mod wrapper;
-pub mod errors;
+//! Utils
+pub(crate) mod errors;
+pub(crate) mod from_file;
+pub(crate) mod wrapper;
 
-pub use wrapper::{error_unwrapper, timing_decorator};
-pub use errors::WaybackError;
+pub(crate) use errors::WaybackError;
+pub(crate) use wrapper::{error_unwrapper, timing_decorator};

@@ -7,19 +7,19 @@ use serde::{
 use serde_json::Value;
 
 #[derive(Deserialize, Debug)]
-pub struct IndColl(
+pub(crate) struct IndColl(
     #[serde(deserialize_with = "deserialize_index_collection")]
     #[serde(rename(deserialize = "values"))]
     Vec<String>,
 );
 
 impl IndColl {
-    pub fn get(self) -> Vec<String> {
+    pub(crate) fn get(self) -> Vec<String> {
         self.0
     }
 }
 
-fn deserialize_index_collection<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+pub(crate) fn deserialize_index_collection<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
 where
     D: Deserializer<'de>,
 {

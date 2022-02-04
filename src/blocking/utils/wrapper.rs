@@ -4,7 +4,7 @@ use std::time::Instant;
 use crate::blocking::structs::{IntoFlag, Verbose};
 
 #[inline]
-pub fn result_unwrapper<O>(r: Result<O>) -> O
+pub(crate) fn result_unwrapper<O>(r: Result<O>) -> O
 where
     O: Default,
 {
@@ -15,7 +15,7 @@ where
 }
 
 #[inline]
-pub fn timing_decorator<F, R>(context: &str, f: F, v: Verbose) -> R
+pub(crate) fn timing_decorator<F, R>(context: &str, f: F, v: Verbose) -> R
 where
     F: FnOnce() -> R,
 {
@@ -30,7 +30,7 @@ where
 }
 
 #[inline]
-pub fn error_unwrapper<F, R>(f: F) -> R
+pub(crate) fn error_unwrapper<F, R>(f: F) -> R
 where
     F: FnOnce() -> Result<R>,
     R: Default,

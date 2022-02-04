@@ -1,4 +1,4 @@
-pub trait FromFile<T> {
+pub(crate) trait FromFile<T> {
     fn from_file(x: T) -> Self;
 }
 

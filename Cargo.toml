@@ -1,6 +1,6 @@
 [package]
 name = "wayback"
-version = "1.0.0"
+version = "1.0.0-pre-alpha-0.1"
 edition = "2021"
 resolver = "2"
 repository = "https://github.com/PFAhard/wayback-rs"
@@ -16,12 +16,12 @@ path = "src/cli/main.rs"
 required-features = ["cli"]
 
 [dependencies]
-tokio = { version = "1.16.0", features = ["rt", "process", "macros"], optional = true  }
+tokio = { version = "1.16.1", features = ["rt", "process", "macros"], optional = true  }
 tokio-stream = { version = "0.1.8", optional = true }
-clap = { version = "3.0.13", features = ["derive"] }
+clap = { version = "3.0.14", features = ["derive"] }
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.78"
-reqwest = {version = "0.11.9", features = ["json", "blocking", "rustls-tls", "gzip", "brotli"] }
+reqwest = {version = "0.11.9", features = ["json", "rustls-tls", "gzip", "brotli"], optional = true }
 anyhow = "1.0.53"
 thiserror = "1.0.30"
 futures = {version = "0.3.19", optional = true }
@@ -29,15 +29,16 @@ rayon = "1.5.1"
 tracing = "0.1.29"
 tracing-subscriber = "0.3.7"
 async-trait = {version = "0.1.52", optional = true }
-governor = "0.4.1"
-nonzero_ext = "0.3.0"
+ureq = { version = "2.4.0", features = ["json"] }
+crossbeam = "0.8.1"
+
 
 [features]
-default = ["cli", "threads", "async"]
+default = ["threads"]
 all = ["cli", "async", "threads"]
 cli = ["tokio"]
 threads = ["tokio/rt-multi-thread"]
-async = ["tokio", "tokio-stream", "futures", "async-trait"]
+async = ["tokio", "tokio-stream", "futures", "async-trait", "reqwest"]
 
 [dev-dependencies]
 trycmd = "0.12.0"

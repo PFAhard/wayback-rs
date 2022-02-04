@@ -1,5 +1,6 @@
 #![doc(hidden)]
-pub mod args;
+pub(crate) mod args;
+pub use args::Config;
 
 #[cfg(not(feature = "async"))]
 pub mod blocking {
@@ -23,10 +24,9 @@ pub mod blocking {
             .restrict(|| result_unwrapper(wbs.request_collection()));
 
         let urls = if wbs.domain_is_some() {
-            let domain = wbs.domain().to_string();
-            wbs.unique_result_scan_domain(domain)
+            wbs.scan_domain()
         } else {
-            wbs.unique_result_scan_domains()
+            wbs.scan_domains()
         };
 
         if wbs.output_is_none() {
@@ -59,6 +59,10 @@ pub mod blocking {
 
         let config = Config::parse();
         let mut wbs = WaybackRs::from_config(config);
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(wbs.threads().into())
+            .build()
+            .unwrap();
 
         app_trace(wbs.verbose());
 
@@ -66,11 +70,9 @@ pub mod blocking {
             .restrict(|| result_unwrapper(wbs.request_collection()));
 
         let urls = if wbs.domain_is_some() {
-            let domain = wbs.domain().to_string();
-            wbs.unique_result_scan_domain(domain)
+            wbs.scan_domain()
         } else {
-            let list = wbs.list();
-            wbs.unique_result_scan_domains(list)
+            wbs.scan_domains()
         };
 
         if wbs.output_is_none() {
@@ -100,7 +102,7 @@ pub mod blocking {
 pub mod concurrent {
     /// Async Cli module for wayback-rs
     #[cfg(not(feature = "threads"))]
-    pub fn scan_domains_cli_async() {
+    pub(crate) fn scan_domains_cli_async() {
         use std::{fs::File, io::Write};
 
         use crate::{
@@ -157,7 +159,7 @@ pub mod concurrent {
     }
 
     #[cfg(feature = "threads")]
-    pub fn run_async_threads() {
+    pub(crate) fn run_async_threads() {
         use std::{fs::File, io::Write, sync::Arc};
 
         use crate::{

@@ -3,7 +3,7 @@
     unused_imports,
     bad_style,
     unused_must_use,
-    dead_code,
+    //dead_code,
     unstable_name_collisions,
     unused_assignments,
     unreachable_patterns,
@@ -38,7 +38,6 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions
 )]
-#![warn(clippy::missing_errors_doc, clippy::missing_panics_doc)]
 // TO DO:
 // Avoid duplicate of tail fn
 // Avoid clonning the whole struct
@@ -73,24 +72,27 @@ Flag -e temporaly useless due to <https://groups.google.com/g/common-crawl/c/kEH
 pub mod cli;
 
 #[cfg(not(feature = "async"))]
-pub mod blocking;
+mod blocking;
 #[cfg(feature = "async")]
-pub mod concurrent;
+mod concurrent;
 
 #[cfg(not(feature = "async"))]
-pub use blocking::{structs, utils};
+pub use blocking::{
+    structs::{self, WaybackRs},
+    utils,
+};
 #[cfg(feature = "async")]
 pub use concurrent::{structs, utils};
 
-#[test]
-fn the_plastic_world_has_won() {
-    let config = cli::args::Config::default();
-    let mut wbs = structs::WaybackRs::from_config(config);
-    let domain = "grob.ru".to_string();
-    #[cfg(feature = "threads")]
-    let mut wbs = std::sync::Arc::new(wbs);
-    let urls = wbs.unique_result_scan_domain(domain);
-    #[cfg(feature = "async")]
-    let urls = tokio::runtime::Runtime::new().unwrap().block_on(urls);
-    assert!(!urls.is_empty());
-}
+// #[test]
+// fn the_plastic_world_has_won() {
+//     let config = cli::args::Config::default();
+//     let mut wbs = structs::WaybackRs::from_config(config);
+//     let domain = "grob.ru".to_string();
+//     #[cfg(feature = "threads")]
+//     let mut wbs = std::sync::Arc::new(wbs);
+//     let urls = wbs.unique_result_scan_domain(domain);
+//     #[cfg(feature = "async")]
+//     let urls = tokio::runtime::Runtime::new().unwrap().block_on(urls);
+//     assert!(!urls.is_empty());
+// }

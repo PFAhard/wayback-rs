@@ -51,7 +51,8 @@ impl IntoFlag for SubsFlag {
 
     fn restrict<I>(self, input: I)
     where
-        I: FnOnce() {
+        I: FnOnce(),
+    {
         if self.into_flag() {
             input();
         }
@@ -92,7 +93,8 @@ impl IntoFlag for NetThreads {
 
     fn restrict<I>(self, input: I)
     where
-        I: FnOnce() {
+        I: FnOnce(),
+    {
         if self.into_flag() {
             input();
         }
@@ -133,7 +135,8 @@ impl IntoFlag for Expensive {
 
     fn restrict<I>(self, input: I)
     where
-        I: FnOnce() {
+        I: FnOnce(),
+    {
         if self.into_flag() {
             input();
         }
