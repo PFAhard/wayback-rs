@@ -7,7 +7,7 @@ use serde::{
 use serde_json::Value;
 
 #[derive(Deserialize, Debug)]
-pub struct IndColl(
+pub(crate) struct IndColl(
     #[serde(deserialize_with = "deserialize_index_collection")]
     #[serde(rename(deserialize = "values"))]
     Vec<String>,

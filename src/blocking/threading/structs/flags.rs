@@ -1,4 +1,4 @@
-pub trait IntoFlag {
+pub(crate) trait IntoFlag {
     fn into_flag(self) -> bool;
 
     fn select<I>(self, one: I, sec: I) -> I;
@@ -60,7 +60,7 @@ impl IntoFlag for SubsFlag {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum NetThreads {
+pub(crate) enum NetThreads {
     Enable,
     Disable,
 }
@@ -102,7 +102,7 @@ impl IntoFlag for NetThreads {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Expensive {
+pub(crate) enum Expensive {
     Enable,
     Disable,
 }

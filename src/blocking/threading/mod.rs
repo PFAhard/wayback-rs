@@ -1,2 +1,2 @@
 pub(crate) mod app;
-pub mod structs;
+pub(crate) mod structs;

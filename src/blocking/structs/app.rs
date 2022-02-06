@@ -1,6 +1,9 @@
+/// Attempt to implement dns cache and file storage (maybe even merge)
+use ureq::{Agent, AgentBuilder};
+
 use super::{Expensive, SubsFlag, Verbose};
 use crate::cli::args::Config;
-use std::{fmt::Display, rc::Rc};
+use std::fmt::Display;
 
 /// Struct for the main App
 ///
@@ -15,10 +18,11 @@ use std::{fmt::Display, rc::Rc};
 /// let mut wbs = WaybackRs::from_config(config);
 /// ```
 ///
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct WaybackRs {
     config: Config,
     batch: Vec<String>,
+    client: Agent,
 }
 
 impl WaybackRs {
@@ -47,11 +51,6 @@ impl WaybackRs {
         self.batch.as_ref()
     }
 
-    /// Get a unsafe reference to the wayback rs's domain.
-    pub(crate) fn domain_rc(&self) -> Rc<String> {
-        Rc::new(self.config.domain_unchecked())
-    }
-
     pub(crate) fn domain_is_some(&self) -> bool {
         self.config.domain_is_some()
     }
@@ -62,8 +61,8 @@ impl WaybackRs {
     }
 
     /// Get a unsafe reference to the wayback rs's vt key.
-    pub(crate) fn vt_key(&self) -> Option<String> {
-        self.config.vt_key()
+    pub(crate) fn vt_key(&self) -> Option<&str> {
+        self.config.vt_key_ref()
     }
 
     /// Get a reference to the wayback rs's list.
@@ -93,6 +92,27 @@ impl WaybackRs {
     /// # ``WaybackRs::scan_domains`` will change current domain
     pub fn set_domain(&mut self, domain: String) {
         self.config.set_domain(domain);
+    }
+
+    /// Get a reference to the wayback rs's client.
+    pub fn client(&self) -> &Agent {
+        &self.client
+    }
+
+    /// Get a wrapped domain string ref
+    pub fn domain(&self) -> Option<&str> {
+        self.config.domain_ref()
+    }
+}
+
+impl Default for WaybackRs {
+    fn default() -> Self {
+        let client = AgentBuilder::new().user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36").build();
+        Self {
+            config: Config::default(),
+            batch: Vec::default(),
+            client,
+        }
     }
 }
 

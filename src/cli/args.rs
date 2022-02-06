@@ -74,20 +74,14 @@ vvvvv - trace"#,
 }
 
 impl Config {
-    /// Get domain.
-    /// Panic if None
-    pub(crate) fn domain_unchecked(&self) -> String {
-        self.domain.clone().unwrap()
-    }
-
-    pub(crate) fn domain_is_some(&self) -> bool {
-        self.domain.is_some()
-    }
-
     /// Get a unsafe reference to the args's list.
     pub(crate) fn list(&self) -> Vec<String> {
         Vec::from_file(self.list.as_ref().unwrap())
     }
+
+    // pub(crate) fn list_ref(&self) -> &[String] {
+    //     self.list.as_ref().unwrap()
+    // }
 
     // pub(crate) fn copy_list_path(&self) -> Option<String> {
     //     self.list.clone()
@@ -103,12 +97,10 @@ impl Config {
         self.vt_key.clone()
     }
 
-    // pub(crate) fn vt_key_unchecked(&self) -> String {
-    //     match &self.vt_key {
-    //         Some(k) => k.clone(),
-    //         None => unreachable!("unchecked domain unwrap failed"),
-    //     }
-    // }
+    /// Get a reference to the args's vt key.
+    pub(crate) fn vt_key_ref(&self) -> Option<&str> {
+        self.vt_key.as_deref()
+    }
 
     /// Get a reference to the args's threads.
     #[cfg(feature = "threads")]
@@ -162,6 +154,20 @@ impl Config {
     /// Set the config's domain.
     pub fn set_domain(&mut self, domain: String) {
         self.domain = Some(domain);
+    }
+
+    /// Get a reference to the config's domain.
+    pub fn domain(&self) -> Option<String> {
+        self.domain.clone()
+    }
+
+    /// Get a reference to the config's domain.
+    pub fn domain_ref(&self) -> Option<&str> {
+        self.domain.as_deref()
+    }
+
+    pub fn domain_is_some(&self) -> bool {
+        self.domain.is_some()
     }
 }
 

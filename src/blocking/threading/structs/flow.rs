@@ -1,4 +1,6 @@
-use std::{collections::HashSet, sync::Arc};
+use std::sync::Arc;
+
+use ureq::Agent;
 
 use crate::{
     blocking::structs::IntoFlag,
@@ -8,20 +10,21 @@ use crate::{
 
 use super::{Expensive, SubsFlag, Verbose};
 
-pub type FlowMember = Box<dyn FnOnce() -> HashSet<String> + 'static + Sync + Send>;
+pub(crate) type FlowMember = Box<dyn FnOnce() -> Vec<String> + 'static + Sync + Send>;
 
 pub(crate) fn into_flow_member<F>(f: F) -> FlowMember
 where
-    F: FnOnce() -> HashSet<String> + 'static + Sync + Send,
+    F: FnOnce() -> Vec<String> + 'static + Sync + Send,
 {
     Box::new(f)
 }
 
-pub type Flow = Vec<FlowMember>;
+pub(crate) type Flow = Vec<FlowMember>;
 
 #[allow(clippy::too_many_arguments)]
-pub trait IntoFlow {
+pub(crate) trait IntoFlow {
     fn into_flow(
+        client: Arc<Agent>,
         domain: Arc<String>,
         subs_flag: SubsFlag,
         expensive: Expensive,
@@ -34,6 +37,7 @@ pub trait IntoFlow {
 
 impl IntoFlow for Flow {
     fn into_flow(
+        client: Arc<Agent>,
         domain: Arc<String>,
         subs_flag: SubsFlag,
         expensive: Expensive,
@@ -45,11 +49,12 @@ impl IntoFlow for Flow {
         vec![
             {
                 let domain = domain.clone();
+                let client = client.clone();
                 into_flow_member(move || {
                     error_unwrapper(|| {
                         timing_decorator(
                             "WA",
-                            || WaybackRs::get_wayback_url(&domain, subs_flag),
+                            || WaybackRs::get_wayback_url(&client, &domain, subs_flag),
                             verbose,
                         )
                     })
@@ -57,11 +62,12 @@ impl IntoFlow for Flow {
             },
             {
                 let domain = domain.clone();
+                let client = client.clone();
                 into_flow_member(move || {
                     error_unwrapper(|| {
                         timing_decorator(
                             "VT",
-                            || WaybackRs::get_virus_total_url(&domain, vt_key.as_deref()),
+                            || WaybackRs::get_virus_total_url(&client, &domain, vt_key.as_deref()),
                             verbose,
                         )
                     })
@@ -69,11 +75,12 @@ impl IntoFlow for Flow {
             },
             {
                 let domain = domain.clone();
+                let client = client.clone();
                 into_flow_member(move || {
                     error_unwrapper(|| {
                         timing_decorator(
                             "OTX",
-                            || WaybackRs::get_otx_alienvault_url(&domain),
+                            || WaybackRs::get_otx_alienvault_url(&client, &domain),
                             verbose,
                         )
                     })
@@ -82,11 +89,13 @@ impl IntoFlow for Flow {
             expensive.select(
                 {
                     let domain = domain.clone();
+                    let client = client.clone();
                     into_flow_member(move || {
                         timing_decorator(
                             "CCbatch",
                             || {
                                 WaybackRs::get_batch_common_crawl(
+                                    &client,
                                     batch,
                                     &domain,
                                     expensive_threads,
@@ -102,7 +111,11 @@ impl IntoFlow for Flow {
                         error_unwrapper(|| {
                             timing_decorator(
                                 "CC",
-                                || WaybackRs::get_common_crawl_url(&domain, subs_flag, None),
+                                || {
+                                    WaybackRs::get_common_crawl_url(
+                                        &client, &domain, subs_flag, None,
+                                    )
+                                },
                                 verbose,
                             )
                         })

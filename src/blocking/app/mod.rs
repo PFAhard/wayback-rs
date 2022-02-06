@@ -1,13 +1,13 @@
 /*!
 Blocking api for wayback-rs
 */
-use super::structs::{Flow, IndColl, IntoFlag, IntoFlow, Otx, SubsFlag, WaybackRs, VT};
+use super::structs::{Flow, IndColl, IntoFlag, Otx, SubsFlag, WaybackRs, VT};
 use crate::utils::wrapper::result_unwrapper;
 use crate::utils::WaybackError;
 use anyhow::Result;
 use std::collections::HashSet;
 use std::io::Read;
-use std::rc::Rc;
+use ureq::Agent;
 
 //Limit for https://Otx.alienvault.com/
 //I can’t set a limit higher than 500. Otx still gives out a limit of 500.
@@ -30,7 +30,7 @@ impl WaybackRs {
             .into_iter()
             .flat_map(|domain| {
                 self.set_domain(domain);
-                self.scan_domain()
+                result_unwrapper(self.scan_domain())
             })
             .collect::<HashSet<String>>()
     }
@@ -45,17 +45,20 @@ impl WaybackRs {
     /// let urls = scan_domain("test.com", true, &None);
     ///
     /// ```
-    pub fn scan_domain(&mut self) -> HashSet<String> {
-        let flow: Flow = Flow::into_flow(
-            self.domain_rc(),
+    /// # Errors
+    /// [`WaybackError::DomainMissing`]
+    ///
+    pub fn scan_domain(&self) -> Result<HashSet<String>> {
+        let domain = self.domain().ok_or(WaybackError::DomainMissing)?;
+        Ok(Flow::run(
+            self.client(),
+            domain,
             self.subs_flag(),
             self.expensive(),
             self.vt_key(),
             self.batch().to_vec(),
             self.verbose(),
-        );
-
-        flow.into_iter().flat_map(|f| f()).collect()
+        ))
     }
 
     /// Makes a request to web.archive.org api and parses the result, returns a vector of urls or None.
@@ -70,30 +73,30 @@ impl WaybackRs {
     /// ```
     /// # Errors
     /// return anyhow Error over:
-    /// 
+    ///
     /// [`ureq::Error`]
-    /// 
+    ///
     /// [`std::io::Error`]
     pub fn get_wayback_url(
-        domain: &Rc<String>,
+        client: &Agent,
+        domain: &str,
         subs_flag: SubsFlag,
     ) -> Result<HashSet<String>> {
         let sub_wild_card = subs_flag.select("*.", "");
 
         let url = format!(
-            "https://web.archive.org/cdx/search/cdx?url={sub_wild_card}{domain}/*&output=text&collapse=urlkey&fl=original"
+            "http://web.archive.org/cdx/search/cdx?url={sub_wild_card}{domain}/*&output=text&collapse=urlkey&fl=original"
         );
 
         let mut buffer = Vec::new();
-        ureq::get(&url)
-            .set("Host", "web.archive.org")
-            .set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36")
+        client
+            .get(&url)
             .call()?
             .into_reader()
             .read_to_end(&mut buffer)?;
-        
+        //It's expensive, but not as expensive as a paginator due to network issues.
         Ok(String::from_utf8_lossy(&buffer)
-        .lines()
+            .lines()
             .map(ToString::to_string)
             .collect::<HashSet<String>>())
     }
@@ -104,12 +107,12 @@ impl WaybackRs {
         }
 
         self.set_batch(
-            ureq::get("https://index.commoncrawl.org/collinfo.json")
-                .set("Host", "index.commoncrawl.org")
-                .set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36")
+            self.client()
+                .get("http://index.commoncrawl.org/collinfo.json")
                 .call()?
-                .into_json::<IndColl>()?.get()
-            );
+                .into_json::<IndColl>()?
+                .get(),
+        );
 
         Ok(())
     }
@@ -120,17 +123,17 @@ impl WaybackRs {
     ///
     ///
     pub fn get_batch_common_crawl(
+        client: &Agent,
         mut batch: Vec<String>,
-        
-        domain: &Rc<String>,
+        domain: &str,
         subs_flag: SubsFlag,
     ) -> HashSet<String> {
         let urls = batch
             .iter_mut()
             .flat_map(|url| {
-                let domain = domain.clone();
                 result_unwrapper(Self::get_common_crawl_url(
-                    &domain,
+                    client,
+                    domain,
                     subs_flag,
                     Some((*url).to_string()),
                 ))
@@ -159,37 +162,34 @@ impl WaybackRs {
     ///
     /// [`std::io::Error`]
     pub fn get_common_crawl_url(
-        domain: &Rc<String>,
+        client: &Agent,
+        domain: &str,
         subs_flag: SubsFlag,
         url: Option<String>,
     ) -> Result<HashSet<String>> {
         let sub_wild_card = subs_flag.select("*.", "");
-        let url = url
-            .unwrap_or_else(|| "https://index.commoncrawl.org/CC-MAIN-2021-49-index".to_string());
+        let url =
+            url.unwrap_or_else(|| "http://index.commoncrawl.org/CC-MAIN-2021-49-index".to_string());
 
         let url = format!(
             "{}?url={}{}/*&output=text&fields=url",
             url, sub_wild_card, domain
         );
-        match ureq::get(&url)
-                .set("Host", "index.commoncrawl.org")
-                .set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36")
-                .call() {
-                    Ok(response) => {
-                        Ok(response
-                            .into_string()?
-                            .lines()
-                            .map(ToString::to_string)
-                            .collect::<HashSet<String>>())
-                    },
-                    Err(ureq::Error::Status(code, _)) => {
-                        if code == 404 {
-                            return Err(WaybackError::CommonCrawlNoCaptures.into());
-                        } 
-                        Err(WaybackError::UreqError.into())
-                    },
-                    Err(err) => Err(err.into())
+        match client.get(&url).call() {
+            Ok(response) => Ok(response
+                .into_string()?
+                .lines()
+                .map(ToString::to_string)
+                .collect::<HashSet<String>>()),
+            Err(ureq::Error::Status(code, _)) => {
+                if code == 404 {
+                    return Err(WaybackError::CommonCrawlNoCaptures.into());
                 }
+                dbg!(code);
+                Err(WaybackError::UreqError.into())
+            }
+            Err(err) => Err(err.into()),
+        }
     }
 
     /// Makes a request to virustotal.com api and parses the result, returns a vector of urls or None.
@@ -210,32 +210,28 @@ impl WaybackRs {
     ///
     /// [`std::io::Error`]
     pub fn get_virus_total_url(
-        domain: &Rc<String>,
+        client: &Agent,
+        domain: &str,
         vt_key: Option<&str>,
     ) -> Result<HashSet<String>> {
         if vt_key.is_none() {
             return Err(WaybackError::VirusTotalKey.into());
         }
         let url = format!(
-            "https://www.virustotal.com/vtapi/v2/domain/report?apikey={}&domain={}",
+            "http://www.virustotal.com/vtapi/v2/domain/report?apikey={}&domain={}",
             vt_key.unwrap_or_else(|| unreachable!()),
             domain
         );
-        match ureq::get(&url)
-            .set("Host", "virustotal.com")
-            .set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36")
-            .call() {
-                Ok(response) => {
-                    Ok(response.into_json::<VT>()?.consume())
-                },
-                Err(ureq::Error::Status(code, _)) => {
-                    if code == 204 {
-                        return Err(WaybackError::VirusTotalNoContent.into());
-                    } 
-                    Err(WaybackError::UreqError.into())
-                },
-                Err(err) => Err(err.into())
+        match client.get(&url).call() {
+            Ok(response) => Ok(response.into_json::<VT>()?.consume()),
+            Err(ureq::Error::Status(code, _)) => {
+                if code == 204 {
+                    return Err(WaybackError::VirusTotalNoContent.into());
+                }
+                Err(WaybackError::UreqError.into())
             }
+            Err(err) => Err(err.into()),
+        }
     }
 
     /// Makes a request to otx.alienvault.com api and parses the result, returns a vector of urls or None.
@@ -250,37 +246,31 @@ impl WaybackRs {
     /// ```
     /// # Errors
     /// return anyhow Error over:
-    /// 
+    ///
     /// [`ureq::Error`]
-    /// 
+    ///
     /// [`std::io::Error`]
-    pub fn get_otx_alienvault_url( 
-        domain: &Rc<String>,
-    ) -> Result<HashSet<String>> {
+    pub fn get_otx_alienvault_url(client: &Agent, domain: &str) -> Result<HashSet<String>> {
         let mut urls = HashSet::new();
         let mut page: u16 = 1;
         let mut has_next = true;
 
         while has_next {
             let url = format!(
-                "https://otx.alienvault.com/api/v1/indicators/domain/{}/url_list?limit={}&page={}",
+                "http://otx.alienvault.com/api/v1/indicators/domain/{}/url_list?limit={}&page={}",
                 domain, LIMIT, page
             );
-            match ureq::get(&url)
-                .set("Host", "otx.alienvault.com")
-                .set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36")
-                .call()?
-                .into_json::<Otx>() {
-                    Ok(otx) => {
-                        has_next = otx.has_next();
-                        page += 1;
-                        urls.extend(otx.url_list());
-                    }
-                    Err(err) => {
-                        has_next = false;
-                        eprintln!("{}", err);
-                    }
-                };
+            match client.get(&url).call()?.into_json::<Otx>() {
+                Ok(otx) => {
+                    has_next = otx.has_next();
+                    page += 1;
+                    urls.extend(otx.url_list());
+                }
+                Err(err) => {
+                    has_next = false;
+                    eprintln!("{}", err);
+                }
+            };
         }
 
         Ok(urls)

@@ -54,6 +54,11 @@
 // VT fields
 // Slow down
 // Web Archive Conection 111 [temp solution - blocking chunk]
+// Avoid using serde
+// Avoid HashMap????
+// Avoid Iterators????
+// Pre resolve??
+// Decompress
 
 /*!
 Rust version of tomnomnom/waybackurls
@@ -76,11 +81,15 @@ mod blocking;
 #[cfg(feature = "async")]
 mod concurrent;
 
-#[cfg(not(feature = "async"))]
-pub use blocking::{
-    structs::{self, WaybackRs},
-    utils,
-};
+cfg_if::cfg_if! {
+    if #[cfg(not(feature = "async"))] {
+        pub(crate) use blocking::{
+            structs,
+            utils,
+        };
+        pub use blocking::structs::WaybackRs;
+    }
+}
 #[cfg(feature = "async")]
 pub use concurrent::{structs, utils};
 

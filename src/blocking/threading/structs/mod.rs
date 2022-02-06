@@ -8,7 +8,7 @@ pub(crate) mod vt;
 
 pub use app::WaybackRs;
 pub(crate) use flags::*;
-pub(crate) use flow::{Flow, IntoFlow};
+pub(crate) use flow::Flow;
 pub(crate) use indcoll::IndColl;
 pub(crate) use otx::Otx;
 pub(crate) use verbose::{app_trace, Verbose};

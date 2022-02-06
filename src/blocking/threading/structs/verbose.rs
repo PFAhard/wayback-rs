@@ -11,7 +11,7 @@ pub(crate) fn app_trace(v: Verbose) {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Verbose {
+pub(crate) enum Verbose {
     None,
     Timing,
     Warn,

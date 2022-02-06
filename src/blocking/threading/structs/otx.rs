@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
-pub struct Otx {
+pub(crate) struct Otx {
     url_list: Vec<OtxMap>,
     has_next: bool,
 }

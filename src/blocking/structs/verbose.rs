@@ -60,11 +60,8 @@ impl Verbose {
     pub(crate) fn into_tracing_level(self) -> Option<Level> {
         match self {
             Verbose::None => Option::None,
-            Verbose::Timing => Some(Level::ERROR),
-            Verbose::Warn => Some(Level::WARN),
-            Verbose::Info => Some(Level::INFO),
-            Verbose::Debug => Some(Level::DEBUG),
-            Verbose::Trace => Some(Level::TRACE),
+            Verbose::Timing => Some(Level::DEBUG),
+            Verbose::Warn | Verbose::Info | Verbose::Debug | Verbose::Trace => Some(Level::TRACE),
         }
     }
 }

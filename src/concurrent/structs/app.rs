@@ -45,8 +45,8 @@ impl WaybackRs {
     }
 
     /// Get a unsafe reference to the wayback rs's domain.
-    pub(crate) fn domain(&self) -> &str {
-        self.config.domain_unchecked()
+    pub(crate) fn domain(&self) -> String {
+        self.config.domain().unwrap()
     }
 
     pub(crate) fn domain_is_some(&self) -> bool {

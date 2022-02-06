@@ -1,4 +1,6 @@
-use std::sync::Arc;
+use std::{fmt::Display, sync::Arc};
+
+use ureq::{Agent, AgentBuilder};
 
 use super::{Expensive, NetThreads, SubsFlag, Verbose};
 use crate::cli::args::Config;
@@ -7,18 +9,18 @@ use crate::cli::args::Config;
 pub struct WaybackRs {
     config: Config,
     batch: Vec<String>,
+    client: Arc<Agent>,
 }
 
 impl WaybackRs {
     pub(crate) fn from_config(config: Config) -> Self {
-        Self::new(config)
+        let mut wbs = Self::new();
+        wbs.config = config;
+        wbs
     }
 
-    pub(crate) fn new(config: Config) -> Self {
-        Self {
-            config,
-            batch: vec![],
-        }
+    pub(crate) fn new() -> Self {
+        Self::default()
     }
 
     pub(crate) fn set_batch(&mut self, batch: Vec<String>) {
@@ -34,16 +36,16 @@ impl WaybackRs {
     }
 
     /// Get a unsafe reference to the wayback rs's domain.
-    pub(crate) fn domain(&self) -> String {
-        self.config.domain_unchecked()
+    pub(crate) fn domain(&self) -> Option<String> {
+        self.config.domain()
     }
 
     pub(crate) fn domain_is_some(&self) -> bool {
         self.config.domain_is_some()
     }
 
-    pub(crate) fn domain_arc(&self) -> Arc<String> {
-        Arc::new(self.domain())
+    pub(crate) fn domain_arc(&self) -> Option<Arc<String>> {
+        self.domain().map(Arc::new)
     }
 
     /// Get a reference to the wayback rs's subs flag.
@@ -88,5 +90,31 @@ impl WaybackRs {
 
     pub(crate) fn verbose(&self) -> Verbose {
         self.config.verbose()
+    }
+
+    /// Get a reference to the wayback rs's client.
+    pub fn client(&self) -> Arc<Agent> {
+        self.client.clone()
+    }
+
+    pub fn set_domain(&mut self, domain: String) {
+        self.config.set_domain(domain);
+    }
+}
+
+impl Default for WaybackRs {
+    fn default() -> Self {
+        let client = Arc::new(AgentBuilder::new().user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36").build());
+        Self {
+            config: Config::default(),
+            batch: Vec::default(),
+            client,
+        }
+    }
+}
+
+impl Display for WaybackRs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.config)
     }
 }

@@ -1,23 +1,25 @@
-use std::{collections::HashSet, fmt, marker::PhantomData};
+use std::{fmt, marker::PhantomData};
 
+use rayon::{iter::ParallelExtend, slice::ParallelSliceMut};
 use serde::{
     de::{IgnoredAny, SeqAccess, Visitor},
     Deserialize, Deserializer,
 };
 
 #[derive(Deserialize, Debug)]
-pub struct VT {
+pub(crate) struct VT {
     #[serde(deserialize_with = "deserialize_undetected_urls")]
-    undetected_urls: HashSet<String>,
+    undetected_urls: Vec<String>,
     #[serde(deserialize_with = "deserialize_detected_urls")]
-    detected_urls: HashSet<String>,
+    detected_urls: Vec<String>,
 }
 
 impl VT {
-    pub(crate) fn consume(self) -> HashSet<String> {
+    pub(crate) fn consume(self) -> Vec<String> {
         let mut det = self.detected_urls;
         let und = self.undetected_urls;
-        det.extend(und);
+        det.par_extend(und);
+        det.par_sort_unstable();
         det
     }
 }
@@ -46,28 +48,26 @@ impl UndetectedUrlsInner {
     }
 }
 
-pub(crate) fn deserialize_detected_urls<'de, D>(
-    deserializer: D,
-) -> Result<HashSet<String>, D::Error>
+pub(crate) fn deserialize_detected_urls<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    struct DetectedUrlsVisitor(PhantomData<fn() -> HashSet<String>>);
+    struct DetectedUrlsVisitor(PhantomData<fn() -> Vec<String>>);
 
     impl<'de> Visitor<'de> for DetectedUrlsVisitor {
-        type Value = HashSet<String>;
+        type Value = Vec<String>;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("sequence of map")
         }
 
-        fn visit_seq<S>(self, mut seq: S) -> Result<HashSet<String>, S::Error>
+        fn visit_seq<S>(self, mut seq: S) -> Result<Vec<String>, S::Error>
         where
             S: SeqAccess<'de>,
         {
-            let mut urls = HashSet::new();
+            let mut urls = vec![];
             while let Some(url) = seq.next_element::<DetectedUrlsInner>()? {
-                urls.insert(url.consume());
+                urls.push(url.consume());
             }
             Ok(urls)
         }
@@ -77,28 +77,26 @@ where
     deserializer.deserialize_seq(visitor)
 }
 
-pub(crate) fn deserialize_undetected_urls<'de, D>(
-    deserializer: D,
-) -> Result<HashSet<String>, D::Error>
+pub(crate) fn deserialize_undetected_urls<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    struct UndetectedUrlsVisitor(PhantomData<fn() -> HashSet<String>>);
+    struct UndetectedUrlsVisitor(PhantomData<fn() -> Vec<String>>);
 
     impl<'de> Visitor<'de> for UndetectedUrlsVisitor {
-        type Value = HashSet<String>;
+        type Value = Vec<String>;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("sequence of arrays")
         }
 
-        fn visit_seq<S>(self, mut seq: S) -> Result<HashSet<String>, S::Error>
+        fn visit_seq<S>(self, mut seq: S) -> Result<Vec<String>, S::Error>
         where
             S: SeqAccess<'de>,
         {
-            let mut urls = HashSet::new();
+            let mut urls = vec![];
             while let Some(url) = seq.next_element::<UndetectedUrlsInner>()? {
-                urls.insert(url.consume());
+                urls.push(url.consume());
             }
             Ok(urls)
         }

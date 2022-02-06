@@ -1,5 +1,6 @@
 use anyhow::Result;
 use std::time::Instant;
+use tracing::{event, Level};
 
 use crate::blocking::structs::{IntoFlag, Verbose};
 
@@ -9,7 +10,7 @@ where
     O: Default,
 {
     r.unwrap_or_else(|err| {
-        eprintln!("{}", &err);
+        event!(Level::DEBUG, "{err}");
         O::default()
     })
 }
@@ -22,7 +23,7 @@ where
     if v.into_flag() {
         let start = Instant::now();
         let f: R = f();
-        eprintln!("{}: {}", context, start.elapsed().as_secs_f64());
+        event!(Level::TRACE, "{context}: {}", start.elapsed().as_secs_f64());
         f
     } else {
         f()
@@ -36,7 +37,7 @@ where
     R: Default,
 {
     f().unwrap_or_else(|err| {
-        eprintln!("{}", &err);
+        event!(Level::DEBUG, "{err}");
         R::default()
     })
 }

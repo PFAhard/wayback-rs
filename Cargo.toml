@@ -1,6 +1,6 @@
 [package]
 name = "wayback"
-version = "1.0.0-pre-alpha-0.1"
+version = "1.0.0-pre-alpha-0.2"
 edition = "2021"
 resolver = "2"
 repository = "https://github.com/PFAhard/wayback-rs"
@@ -31,10 +31,10 @@ tracing-subscriber = "0.3.7"
 async-trait = {version = "0.1.52", optional = true }
 ureq = { version = "2.4.0", features = ["json"] }
 crossbeam = "0.8.1"
-
+cfg-if = "1.0.0"
 
 [features]
-default = ["threads"]
+default = ["cli", "threads"]
 all = ["cli", "async", "threads"]
 cli = ["tokio"]
 threads = ["tokio/rt-multi-thread"]

@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use reqwest::Client;
+use super::{Expensive, NetThreads, SubsFlag, Verbose};
 use crate::cli::args::Config;
-use super::{Expensive, SubsFlag, Verbose, NetThreads};
+use reqwest::Client;
 
 #[derive(Debug, Clone)]
 pub struct WaybackRs {
@@ -41,8 +41,8 @@ impl WaybackRs {
     }
 
     /// Get a unsafe reference to the wayback rs's domain.
-    pub fn domain(&self) -> &str {
-        self.config.domain_unchecked()
+    pub fn domain(&self) -> String {
+        self.config.domain().unwrap()
     }
 
     pub fn domain_is_some(&self) -> bool {
