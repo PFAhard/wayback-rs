@@ -10,12 +10,11 @@ Command line interface for fetching url from Wayback Machine, CommonCrawl, Virus
 
 Update v1.0.0:
 Increase productivity:
-
 In results |orig | v0.3.1 | v1 | v1 async | v1 threads | v1 threads + async | expensive
 ---|---|---|---|---|---|---|---
-6 urls |553.0ms±90.9ms|1.046s±0.146s|1.864s±0.270s|1.822s±0.347s|935.0ms±203.4ms| 1.582s±0.197s | 9,222(1.567)
-~0,7kk urls | | | 52.402s±5.435s|||34.735s±8.625s
-15 targets 90k |26.789s±3.368s||||6.747s±2.293s|5.726s±1.216s
+6 urls |553.0ms±90.9ms|1.046s±0.146s|1.581s±0.193s|1.563s±0.201s|935.0ms±203.4ms| 1.582s±0.197s | 9,222(1.567)
+~0,7kk urls |too long (aprx. 5min)|too long (aprx. 5min)|47.959s±5.746s|||34.735s±8.625s
+15 targets 90k |26.789s±3.368s|too long|7.389s±1.991s||6.747s±2.293s|5.726s±1.216s
 
 Install:
 

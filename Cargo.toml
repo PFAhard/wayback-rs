@@ -1,6 +1,6 @@
 [package]
 name = "wayback"
-version = "1.0.0-pre-alpha-0.2"
+version = "1.0.0-pre-alpha-0.3"
 edition = "2021"
 resolver = "2"
 repository = "https://github.com/PFAhard/wayback-rs"
@@ -10,36 +10,50 @@ keywords = ["wayback", "archive", "backup", "recon", "bug-bounty"]
 license = "GPL-3.0"
 documentation = "https://docs.rs/wayback"
 
-[[bin]]
-name = "wayback-rs"
-path = "src/cli/main.rs"
-required-features = ["cli"]
+# [[bin]]
+# name = "wayback-rs"
+# path = "src/cli/main.rs"
+# required-features = ["cli"]
 
 [dependencies]
-tokio = { version = "1.16.1", features = ["rt", "process", "macros"], optional = true  }
-tokio-stream = { version = "0.1.8", optional = true }
-clap = { version = "3.0.14", features = ["derive"] }
-serde = { version = "1.0.136", features = ["derive"] }
-serde_json = "1.0.78"
-reqwest = {version = "0.11.9", features = ["json", "rustls-tls", "gzip", "brotli"], optional = true }
-anyhow = "1.0.53"
-thiserror = "1.0.30"
-futures = {version = "0.3.19", optional = true }
-rayon = "1.5.1"
-tracing = "0.1.29"
-tracing-subscriber = "0.3.7"
-async-trait = {version = "0.1.52", optional = true }
-ureq = { version = "2.4.0", features = ["json"] }
-crossbeam = "0.8.1"
-cfg-if = "1.0.0"
+# tokio = { version = "1.16.1", features = ["rt", "process", "macros"], optional = true  }
+# tokio-stream = { version = "0.1.8", optional = true }
+# clap = { version = "3.0.14", features = ["derive"] }
+serde = { version = "1.0.136", features = ["derive"] , optional =true}
+serde_json = {version= "1.0.78", optional =true}
+# reqwest = {version = "0.11.9", features = ["json", "rustls-tls", "gzip", "brotli"], optional = true }
+# anyhow = "1.0.53"
+# thiserror = "1.0.30"
+# futures = {version = "0.3.19", optional = true }
+# rayon = "1.5.1"
+# tracing = "0.1.29"
+# tracing-subscriber = "0.3.7"
+# async-trait = {version = "0.1.52", optional = true }
+# ureq = { version = "2.4.0", features = ["json"] }
+# crossbeam = "0.8.1"
+# cfg-if = "1.0.0"
+# tempfile = "3.3.0"
+nom = {version = "7.1.0", optional = true }
+# zstd = "0.10.0+zstd.1.5.2"
+# brotli-decompressor = "2.3.2"
+
+# [features]
+# default = ["cli"]
+# all = ["cli", "async", "threads"]
+# cli = ["tokio"]
+# threads = ["tokio/rt-multi-thread"]
+# async = ["tokio", "tokio-stream", "futures", "async-trait", "reqwest"]
 
 [features]
-default = ["cli", "threads"]
-all = ["cli", "async", "threads"]
-cli = ["tokio"]
-threads = ["tokio/rt-multi-thread"]
-async = ["tokio", "tokio-stream", "futures", "async-trait", "reqwest"]
+default = ["parser_test"]
+serde_test = ["serde_json", "serde"] # 2.2ms±1.0ms
+parser_test = [] # 0.6 ms
+nom_test = ["nom"] # 4.7ms±1.4ms
 
-[dev-dependencies]
-trycmd = "0.12.0"
-criterion = "0.3.5"
+
+# [dev-dependencies]
+# trycmd = "0.12.0"
+# criterion = "0.3.5"
+
+[profile.release]
+debug = true

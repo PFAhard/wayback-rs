@@ -1,3 +1,8 @@
 /target
 Cargo.lock
-benchmark.txt
+/tests
+/bench
+/bins
+flamegraph.svg
+/lib_test
+backups

@@ -25,7 +25,7 @@
     rust_2018_idioms
 )]
 #![deny(
-    clippy::pedantic,
+    //clippy::pedantic,
     clippy::correctness,
     clippy::suspicious,
     clippy::style,
@@ -38,70 +38,8 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions
 )]
-// TO DO:
-// Avoid duplicate of tail fn
-// Avoid clonning the whole struct
-// initiate batch on start of wbr
-// Zero cost nth stream
-// CC: filter {"message": "No Captures found for: {}/"}
-// Otx: implement subs_flag on alientvault api?
-// CC: batch: rewrite in favour of stream
-// Otx: has next when error
-// deser: all
-// Avoid if true blocks
-// Replace Common Crawl and Web archive to text
-// fix async threads
-// VT fields
-// Slow down
-// Web Archive Conection 111 [temp solution - blocking chunk]
-// Avoid using serde
-// Avoid HashMap????
-// Avoid Iterators????
-// Pre resolve??
-// Decompress
-
-/*!
-Rust version of tomnomnom/waybackurls
-
-Command line interface for fetching url from Wayback Machine, ``CommonCrawl``, ``VirusTotal``.
-
-Install:
-
-git clone <https://github.com/PFAhard/wayback-rs.git>
-cd wayback-rs
-cargo build --release
-cp target/release/wayback ``path_to_bin_path``
-
-Flag -e temporaly useless due to <https://groups.google.com/g/common-crawl/c/kEHzXZNu5To>
-*/
-pub mod cli;
-
-#[cfg(not(feature = "async"))]
-mod blocking;
-#[cfg(feature = "async")]
-mod concurrent;
-
-cfg_if::cfg_if! {
-    if #[cfg(not(feature = "async"))] {
-        pub(crate) use blocking::{
-            structs,
-            utils,
-        };
-        pub use blocking::structs::WaybackRs;
-    }
-}
-#[cfg(feature = "async")]
-pub use concurrent::{structs, utils};
-
-// #[test]
-// fn the_plastic_world_has_won() {
-//     let config = cli::args::Config::default();
-//     let mut wbs = structs::WaybackRs::from_config(config);
-//     let domain = "grob.ru".to_string();
-//     #[cfg(feature = "threads")]
-//     let mut wbs = std::sync::Arc::new(wbs);
-//     let urls = wbs.unique_result_scan_domain(domain);
-//     #[cfg(feature = "async")]
-//     let urls = tokio::runtime::Runtime::new().unwrap().block_on(urls);
-//     assert!(!urls.is_empty());
-// }
+#[cfg(feature = "nom_test")]
+pub mod otx_nom;
+#[cfg(feature = "serde_test")]
+pub mod otx_serde;
+pub mod otx_stream;
